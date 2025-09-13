@@ -1,0 +1,127 @@
+@font-face {
+  font-family: Marianne; font-display: swap; src: url(https://inclusion.beta.gouv.fr/static/dsfr/dist/fonts/Marianne-Light.woff2) format("woff2"), url(https://inclusion.beta.gouv.fr/static/dsfr/dist/fonts/Marianne-Light.woff) format("woff");
+  font-style: normal; font-weight: 300;
+}
+
+@font-face {
+  font-family: Marianne; font-display: swap; src: url(https://inclusion.beta.gouv.fr/static/dsfr/dist/fonts/Marianne-Light_Italic.woff2) format("woff2"), url(https://inclusion.beta.gouv.fr/static/dsfr/dist/fonts/Marianne-Light_Italic.woff) format("woff");
+  font-style: italic; font-weight: 300;
+}
+
+@font-face {
+  font-family: Marianne; font-display: swap; src: url(https://inclusion.beta.gouv.fr/static/dsfr/dist/fonts/Marianne-Regular.woff2) format("woff2"), url(https://inclusion.beta.gouv.fr/static/dsfr/dist/fonts/Marianne-Regular.woff) format("woff");
+  font-style: normal; font-weight: 400;
+}
+
+@font-face {
+  font-family: Marianne; font-display: swap; src: url(https://inclusion.beta.gouv.fr/static/dsfr/dist/fonts/Marianne-Regular_Italic.woff2) format("woff2"), url(https://inclusion.beta.gouv.fr/static/dsfr/dist/fonts/Marianne-Regular_Italic.woff) format("woff");
+  font-style: italic; font-weight: 400;
+}
+
+@font-face {
+  font-family: Marianne; font-display: swap; src: url(https://inclusion.beta.gouv.fr/static/dsfr/dist/fonts/Marianne-Medium.woff2) format("woff2"), url(https://inclusion.beta.gouv.fr/static/dsfr/dist/fonts/Marianne-Medium.woff) format("woff");
+  font-style: normal; font-weight: 500;
+}
+
+@font-face {
+  font-family: Marianne; font-display: swap; src: url(https://inclusion.beta.gouv.fr/static/dsfr/dist/fonts/Marianne-Medium_Italic.woff2) format("woff2"), url(https://inclusion.beta.gouv.fr/static/dsfr/dist/fonts/Marianne-Medium_Italic.woff) format("woff");
+  font-style: italic; font-weight: 500;
+}
+
+@font-face {
+  font-family: Marianne; font-display: swap; src: url(https://inclusion.beta.gouv.fr/static/dsfr/dist/fonts/Marianne-Bold.woff2) format("woff2"), url(https://inclusion.beta.gouv.fr/static/dsfr/dist/fonts/Marianne-Bold.woff) format("woff");
+  font-style: normal; font-weight: 700;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none;
+}
+
+body {
+  font-family: Marianne, system-ui, sans-serif;
+  background: white;
+  margin: 0;
+}
+
+main {
+  margin: 1em;
+  max-width: 66rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  border-radius: 0.5em;
+  background: #eef;
+  padding: 1em;
+}
+header :last-child {
+  font-variant: all-small-caps;
+  color: #555;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td {
+  height: 2.5em;
+}
+
+th,
+td {
+  padding: 0.25em 0.5em;
+  text-align: center;
+  border: 1.5px solid #ddd;
+}
+
+th {
+  font-variant: all-small-caps;
+  background: #F4F4F4;
+  color: #555;
+}
+
+th:first-child,
+td:first-child {
+  text-align: left;
+  font-weight: bold;
+}
+
+tr td:nth-child(n+2) {
+  text-align: center;
+  max-width: 10rem;
+}
+
+td:has(> input) {
+  padding: 0;
+  background: rgb(247, 247, 255);
+  position: relative;
+}
+td input {
+  position: absolute;
+  inset: 0;
+  outline: none;
+  height: 100%;
+  min-height: 2.5rem;
+  padding: .5rem;
+  width: 100%;
+  font-size: inherit;
+  border: none;
+  background-color: transparent;
+}
+tr:focus-within {
+  position: relative;
+  z-index: 10;
+}
+td input:focus {
+  background: #eef;
+  outline: 2px solid #99f;
+}

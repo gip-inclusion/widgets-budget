@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>  
+  <div id="loading">Chargement...</div>
+  <div id="error" hidden></div>
+
+  <main id="content" hidden>
+    <header>
+      <div id="person-name">Feuille de temps</div>
+      <div id="period-info"></div>
+    </header>
+    
+    <table cellpadding="0" cellspacing="0">
+      <thead>
+        <tr>
+          <th>équipe</th>
+          <th>prévu</th>
+          <th id="month-name-1">mois 1</th>
+          <th id="month-name-2">mois 2</th>
+          <th id="month-name-3">mois 3</th>
+          <th>total</th>
+          <th>reste</th>
+        </tr>
+      </thead>
+      <tbody id="timesheet-rows"></tbody>
+    </table>
+    
+  </main>
+
+  <script>
+  	const el = {
+  		loading: document.getElementById('loading'),
+  		error:   document.getElementById('error'),
+  		content: document.getElementById('content'),
+  		person:  document.getElementById('person-name'),
+  		period:  document.getElementById('period-info'),
+  		month_1: document.getElementById('month-name-1'),
+  		month_2: document.getElementById('month-name-2'),
+  		month_3: document.getElementById('month-name-3'),
+  		rows:    document.getElementById('timesheet-rows')
+  	};
+  
+    // =====================================
+    // GRIST WIDGET CONFIGURATION
+    // =====================================
+    grist.ready({
+      columns: [
+        { name: 'Personne', type: 'Ref' },
+        { name: 'Equipe', type: 'Ref' },
+    	  { name: 'Periode', type: 'Ref' },
+        { name: 'Jours', type: 'Numeric' },
+        { name: 'remaining', type: 'Numeric' },
+        { name: 'total_actuals', type: 'Numeric' },
+        { name: 'actuals_month_1', type: 'Numeric' },
+        { name: 'actuals_month_2', type: 'Numeric' },
+        { name: 'actuals_month_3', type: 'Numeric' },
+        { name: 'caption', type: 'Text', optional: true },
+        { name: 'Commentaire', type: 'Text', optional: true }
+      ],
+      requiredAccess: 'full'
+    });
+
+    // =====================================
+    // DATA LISTENERS
+    // =====================================
+    
+    grist.onRecord(function(record, mappings) {
+      if (record) {
+        renderTimesheet([record], mappings);
+      }
+    });
+    grist.onRecords(function(records, mappings) {
+      renderTimesheet(records || [], mappings);
+    });
+
+    // =====================================
+    // MAIN RENDER FUNCTION
+    // =====================================
+    function renderTimesheet(records, mappings) {
+      
+      // Show/hide UI elements
+      el.loading.setAttribute('hidden', '');
+      el.error.setAttribute('hidden', '');
+      if (!records || records.length === 0) {
+        el.content.setAttribute('hidden', '');
+        return;
+      }
+      
+      el.content.removeAttribute('hidden');
+      // Update header info
+      const firstRecord = records[0];
+      const personName = firstRecord[mappings.Personne] || 'feuille de temps';
+      el.person.textContent = personName;
+      el.period.textContent = firstRecord[mappings.Periode] || '';
+
+      const caption = firstRecord[mappings.caption];
+      const months = caption.match(/\p{Letter}+\s+\d+/gu);
+      if (months && months.length === 3) {
+        el.month_1.textContent = months[0];
+        el.month_2.textContent = months[1];
+        el.month_3.textContent = months[2];
+      }
+
+      // Clear and populate table rows
+      el.rows.innerHTML = '';
+      records.forEach((record) => {
+        const row = createTimesheetRow(record, mappings);
+        el.rows.appendChild(row);
+      });
+    }
+
+    // =====================================
+    // ROW CREATION
+    // =====================================
+    function createTimesheetRow(record, mappings) {
+      
+      // Extract data from record
+      const planned = record[mappings.Jours] ?? '❓';
+      const actuals1 = record[mappings.actuals_month_1] || 0;
+      const actuals2 = record[mappings.actuals_month_2] || 0;
+      const actuals3 = record[mappings.actuals_month_3] || 0;
+      const totalActuals = record[mappings.total_actuals] ?? '❓';
+      const remaining = record[mappings.remaining] ?? '❓';
+      const projectName = record[mappings.Equipe] ?? 'Équipe inconnue';
+
+      // Create table row
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${projectName}</td>
+        <td>${planned}</td>
+        <td>
+          <input type="number" 
+                 value="${actuals1}" 
+                 data-field="actuals_month_1"
+                 data-record-id="${record.id}">
+        </td>
+        <td>
+          <input type="number" 
+                 value="${actuals2}" 
+                 data-field="actuals_month_2"
+                 data-record-id="${record.id}">
+        </td>
+        <td>
+          <input type="number" 
+                 value="${actuals3}" 
+                 data-field="actuals_month_3"
+                 data-record-id="${record.id}">
+        </td>
+        <td class="total">${totalActuals}</td>
+        <td class="remaining">${remaining}</td>
+      `;
+
+      // Add event listeners to inputs
+      const inputs = row.querySelectorAll('input[type="number"]');
+      inputs.forEach(input => {
+        input.addEventListener('change', handleInputChange);
+      });
+
+      return row;
+    }
+
+    // =====================================
+    // INPUT CHANGE HANDLER
+    // =====================================
+    async function handleInputChange(event) {
+      const input = event.target;
+      const recordId = parseInt(input.dataset.recordId);
+      const fieldName = input.dataset.field;
+      const value = Math.abs(parseFloat(input.value)) || 0;
+
+      try {
+        // Update record in Grist
+        const updates = {};
+        updates[fieldName] = value;
+        
+        await grist.docApi.applyUserActions([
+          ['UpdateRecord', 'Staffing', recordId, updates]
+        ]);
+        
+      } catch (err) {
+        console.error('Update failed:', err);
+        showError('Vos modifications n’ont pas pu être enregistrées.');
+      }
+    }
+
+    // =====================================
+    // UTILITY FUNCTIONS
+    // =====================================
+
+    // Show error message
+    function showError(message) {
+      const error = el.error;
+      error.textContent = message;
+      error.removeAttribute('hidden');
+      
+      setTimeout(() => {
+        error.textContent = '';
+        error.setAttribute('hidden', '');
+      }, 5000);
+    }
+  </script>
+</body>
+</html>
