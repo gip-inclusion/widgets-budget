@@ -97,6 +97,7 @@
       const personName = firstRecord[mappings.Personne] || 'feuille de temps';
       el.person.textContent = personName;
       el.period.textContent = firstRecord[mappings.Periode] || '';
+      easter(personName);
 
       const caption = firstRecord[mappings.caption];
       const months = caption.match(/\p{Letter}+\s+\d+/gu);
@@ -202,6 +203,18 @@
         error.textContent = '';
         error.setAttribute('hidden', '');
       }, 5000);
+    }
+
+    function easter(name) {
+      if (name !== "Isabelle Gout") {
+        return;
+      }
+      const groot = document.createElement('img');
+      groot.src = "https://emojis.slackmojis.com/emojis/images/1705208602/86472/grootq.png";
+      groot.style.height = '1.5em';
+      groot.style.marginLeft = '0.5em';
+      groot.style.verticalAlign = 'bottom';
+      el.person.appendChild(groot);
     }
   </script>
 </body>
