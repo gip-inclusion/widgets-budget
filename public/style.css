@@ -125,3 +125,55 @@ td input:focus {
   background: #eef;
   outline: 2px solid #99f;
 }
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1em;
+  margin: 1em;
+}
+
+.tab {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .125rem 1rem;
+  padding: .25rem .5em;
+  border-radius: .5rem;
+  border: 2px solid transparent;
+  cursor: pointer;
+  background: #eef;
+  transition: background-color .15s, border-color .15s;
+  max-width: 15rem;
+}
+.tab:has(:checked) {
+  border-color: rgb(167, 167, 255);
+  background: rgb(208, 208, 255);
+}
+.tab:has(:checked) .tab-badge {
+  background: #fff;
+}
+
+.tab input {
+  display: none;
+}
+
+.tab-title {
+  font-weight: bold;
+  margin-right: auto;
+}
+.tab-badge {
+  background: #99f;
+  color: white;
+  font-size: .8em;
+  font-weight: bold;
+  padding: .1em .4em;
+  border-radius: .25em;
+  justify-self: start;
+  align-self: center;
+}
+.tab-subtitle {
+  flex: 1 1 100%;
+  font-size: .75em;
+  color: #555;
+}

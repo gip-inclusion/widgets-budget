@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+  <link rel="stylesheet" href="https://widgets-budget-prod.osc-fr1.scalingo.io/style.css">
+</head>
+<body>
+  <div id="loading">Chargement...</div>
+  <nav id="content" hidden class="tabs"></nav>
+
+    <script>
+      const el = {
+        loading: document.getElementById('loading'),
+        content: document.getElementById('content')
+      };
+      let selectedRow = null;
+    
+      // =====================================
+      // GRIST WIDGET CONFIGURATION
+      // =====================================
+      grist.ready({
+        columns: [
+          { name: 'Title' },
+          { name: 'Subtitle', optional: true },
+          { name: 'Badge', optional: true }
+        ],
+        requiredAccess: 'read table',
+        allowSelectBy: true
+      });
+      
+      grist.onRecord(function(record) {
+        selectedRow = record.id;
+      });
+
+      grist.onRecords(function(records, mappings) {
+        renderTabs(records || []);
+      });
+
+      // =====================================
+      // RENDERING
+      // =====================================
+      function renderTabs(records) {
+        el.loading.setAttribute('hidden', '');
+        if (!records || records.length === 0) {
+          el.content.setAttribute('hidden', '');
+          return;
+        }      
+        el.content.removeAttribute('hidden');
+        el.content.innerHTML = '';
+
+        records.forEach((record) => {
+          const row = createTab(grist.mapColumnNames(record));
+          el.content.appendChild(row);
+        });
+      }
+
+      function createTab(tab) {
+        console.log('Creating tab:', tab);
+        const el = document.createElement('label');
+        el.className = 'tab';
+        el.innerHTML = `
+          <input type="radio" name="tabs" value="${tab.id}" ${(tab.id === selectedRow) ? "checked" : ""} />
+          <span class="tab-title">${tab.Title}</span>
+          ${tab.Badge ? `<span class="tab-badge">${tab.Badge}</span>` : ''}
+          ${tab.Subtitle ? `<span class="tab-subtitle">${tab.Subtitle}</span>` : ''}
+        `;
+        el.querySelector('input').addEventListener('change', handleInputChange);
+        return el;
+      }
+
+      // =====================================
+      // INPUT CHANGE HANDLER
+      // =====================================
+      async function handleInputChange(event) {
+        const input = event.target;
+        selectedRow = parseInt(event.target.value);
+
+        grist.setCursorPos({ rowId: selectedRow });
+      }
+
+    </script>
+  </body>
+  </html>
