@@ -8,77 +8,127 @@
 <body>
   <div id="loading">Chargement...</div>
   <nav id="content" hidden class="tabs"></nav>
+  <div id="options" hidden>
+    <label>
+      Ordre des colonnes (séparées par des virgules) :
+      <input id="column-ordering" type="text" />
+    </label>
+    <button onclick="saveOptions()">Enregistrer</input>
+  </div>
+  <script>
+    const el = {
+      loading: document.getElementById('loading'),
+      content: document.getElementById('content'),
+      options: document.getElementById('options')
+    };
+    let selectedRow = null;
+    let defaultOrdering = [];
 
-    <script>
-      const el = {
-        loading: document.getElementById('loading'),
-        content: document.getElementById('content')
-      };
-      let selectedRow = null;
+    // =====================================
+    // GRIST WIDGET CONFIGURATION
+    // =====================================
+    grist.ready({
+      onEditOptions() {
+        showPanel('options');
+      },
+      columns: [
+        { name: 'Title' },
+        { name: 'Subtitle', optional: true },
+        { name: 'Badge', optional: true }
+      ],
+      requiredAccess: 'read table',
+      allowSelectBy: true
+    });
     
-      // =====================================
-      // GRIST WIDGET CONFIGURATION
-      // =====================================
-      grist.ready({
-        columns: [
-          { name: 'Title' },
-          { name: 'Subtitle', optional: true },
-          { name: 'Badge', optional: true }
-        ],
-        requiredAccess: 'read table',
-        allowSelectBy: true
-      });
-      
-      grist.onRecord(function(record) {
-        selectedRow = record.id;
-      });
+    grist.onRecord(function(record) {
+      selectedRow = record.id;
+    });
 
-      grist.onRecords(function(records, mappings) {
-        renderTabs(records || []);
-      });
+    grist.onRecords(function(records, mappings) {
+      renderTabs(records || []);
+    });
 
-      // =====================================
-      // RENDERING
-      // =====================================
-      function renderTabs(records) {
-        el.loading.setAttribute('hidden', '');
-        if (!records || records.length === 0) {
-          el.content.setAttribute('hidden', '');
-          return;
-        }      
-        el.content.removeAttribute('hidden');
-        el.content.innerHTML = '';
-
-        records.forEach((record) => {
-          const row = createTab(grist.mapColumnNames(record));
-          el.content.appendChild(row);
-        });
+    grist.onOptions((options, _) => {
+      if (options && options.columnOrdering !== undefined) {
+        document.getElementById('column-ordering').value = options.columnOrdering || '';
+        defaultOrdering = (options.columnOrdering || '').split(',').map(s => s.trim()).filter(s => s);
       }
+      showPanel('content');
+    });
 
-      function createTab(tab) {
-        console.log('Creating tab:', tab);
-        const el = document.createElement('label');
-        el.className = 'tab';
-        el.innerHTML = `
-          <input type="radio" name="tabs" value="${tab.id}" ${(tab.id === selectedRow) ? "checked" : ""} />
-          <span class="tab-title">${tab.Title}</span>
-          ${tab.Badge ? `<span class="tab-badge">${tab.Badge}</span>` : ''}
-          ${tab.Subtitle ? `<span class="tab-subtitle">${tab.Subtitle}</span>` : ''}
-        `;
-        el.querySelector('input').addEventListener('change', handleInputChange);
-        return el;
-      }
+    async function saveOptions() {
+      await grist.widgetApi.setOption('columnOrdering', document.getElementById('column-ordering').value);
+      showPanel('content');
+    }
 
-      // =====================================
-      // INPUT CHANGE HANDLER
-      // =====================================
-      async function handleInputChange(event) {
-        const input = event.target;
-        selectedRow = parseInt(event.target.value);
+    // =====================================
+    // RENDERING
+    // =====================================
+    function renderTabs(unsortedRecords) {
+      const mappedRecords = unsortedRecords.map(r => grist.mapColumnNames(r));
+      const records = sortRecords(mappedRecords);
 
-        grist.setCursorPos({ rowId: selectedRow });
-      }
+      el.loading.setAttribute('hidden', '');
+      if (!records || records.length === 0) {
+        el.content.setAttribute('hidden', '');
+        return;
+      }      
+      el.content.removeAttribute('hidden');
+      el.content.innerHTML = '';
 
-    </script>
-  </body>
-  </html>
+      records.forEach((record) => {
+        const row = createTab(record);
+        el.content.appendChild(row);
+      });
+    }
+
+    function createTab(tab) {
+      console.log('Creating tab:', tab);
+      const el = document.createElement('label');
+      el.className = 'tab';
+      el.innerHTML = `
+        <input type="radio" name="tabs" value="${tab.id}" ${(tab.id === selectedRow) ? "checked" : ""} />
+        <span class="tab-title">${tab.Title}</span>
+        ${tab.Badge ? `<span class="tab-badge">${tab.Badge}</span>` : ''}
+        ${tab.Subtitle ? `<span class="tab-subtitle">${tab.Subtitle}</span>` : ''}
+      `;
+      el.querySelector('input').addEventListener('change', handleInputChange);
+      return el;
+    }
+
+    // =====================================
+    // INPUT CHANGE HANDLER
+    // =====================================
+    async function handleInputChange(event) {
+      const input = event.target;
+      selectedRow = parseInt(event.target.value);
+
+      grist.setCursorPos({ rowId: selectedRow });
+    }
+
+    // =====================================
+    // UTILITIES
+    // =====================================
+    function sortRecords(records) {
+      const ordering = [...defaultOrdering];
+      records.forEach((rec) => {
+        const idx = ordering.indexOf(rec.Title);
+        if (idx === -1) {
+          ordering.push(rec.Title);
+        }
+      });
+      records.sort((a, b) => {
+        return ordering.indexOf(a.Title) - ordering.indexOf(b.Title);
+      });
+      return records;
+    }
+
+    function showPanel(name) {
+      el.options.setAttribute('hidden', '');
+      el.content.setAttribute('hidden', '');
+
+      el[name].removeAttribute('hidden');
+    }
+  </script>
+</body>
+</html>
