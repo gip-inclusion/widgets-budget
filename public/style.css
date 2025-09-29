@@ -177,3 +177,36 @@ td input:focus {
   font-size: .75em;
   color: #555;
 }
+
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #121212;
+    color: #eee;
+  }
+  header {
+    background: #223;
+  }
+  th {
+    background: #222;
+    color: #ccc;
+  }
+  td:has(> input) {
+    background: #222233;
+  }
+  td input:focus {
+    background: #334;
+    outline-color: #99f;
+  }
+  .tab {
+    background: #223;
+  }
+  .tab:has(:checked) {
+    border-color: rgb(167, 167, 255);
+    background: rgb(44, 44, 88);
+  }
+  .tab-badge {
+    background: #99f;
+    color: black;
+  }
+}
