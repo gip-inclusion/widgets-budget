@@ -152,6 +152,7 @@ td input:focus {
 }
 .tab:has(:checked) .tab-badge {
   background: #fff;
+  color: black;
 }
 
 .tab input {
@@ -207,6 +208,5 @@ td input:focus {
   }
   .tab-badge {
     background: #99f;
-    color: black;
   }
 }
